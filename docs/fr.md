@@ -116,6 +116,8 @@ rendez-vous de la prochaine.
 - Une requête **toutes les 12 heures** (deux fois par jour au plus), pour les collectes à partir
   d'aujourd'hui. Une lecture en échec est retentée au bout d'une heure ; les collectes connues
   restent affichées.
+- Autour de Paris, l'EFS met jusqu'à une minute à répondre : la première lecture après un démarrage
+  peut prendre ce temps.
 - Toutes les 10 minutes, sans réseau, les compteurs et la prochaine collecte suivent l'horloge.
 - La requête porte le centre de la zone **arrondi à un kilomètre environ** : la position exacte de
   ta maison n'est pas envoyée. Les distances sont calculées par l'intégration.

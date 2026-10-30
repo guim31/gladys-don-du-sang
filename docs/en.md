@@ -110,6 +110,8 @@ there is one), the place, the date and the booking link of the next drive.
   data.gouv.fr ("Lieux et horaires des collectes de sang") under the Licence Ouverte 2.0.
 - One request **every 12 hours** (twice a day at most), for the drives from today on. A failed
   reading is tried again after an hour; the known drives stay shown.
+- Around Paris, the EFS takes up to a minute to answer: the first reading after a start can take
+  that long.
 - Every 10 minutes, without network, the counts and the next drive follow the clock.
 - The request carries the centre of the zone **rounded to about a kilometre**: the exact position
   of your house is not sent. Distances are computed by the integration.

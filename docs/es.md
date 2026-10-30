@@ -114,6 +114,8 @@ colecta (para continuar solo si hay alguno), el lugar, la fecha y el enlace de c
   data.gouv.fr («Lieux et horaires des collectes de sang») bajo la Licence Ouverte 2.0.
 - Una petición **cada 12 horas** (dos veces al día como máximo), para las colectas desde hoy. Una
   lectura fallida se reintenta al cabo de una hora; las colectas conocidas siguen mostrándose.
+- Alrededor de París, el EFS tarda hasta un minuto en responder: la primera lectura tras un inicio
+  puede tardar ese tiempo.
 - Cada 10 minutos, sin red, los contadores y la próxima colecta siguen el reloj.
 - La petición lleva el centro de la zona **redondeado a un kilómetro aproximadamente**: la posición
   exacta de su casa no se envía. Las distancias las calcula la integración.

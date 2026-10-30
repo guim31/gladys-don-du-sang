@@ -114,6 +114,8 @@ Termins.
   veröffentlicht („Lieux et horaires des collectes de sang“) unter der Licence Ouverte 2.0.
 - Eine Anfrage **alle 12 Stunden** (höchstens zweimal täglich), für die Termine ab heute. Ein
   fehlgeschlagenes Lesen wird nach einer Stunde wiederholt; die bekannten Termine bleiben sichtbar.
+- Rund um Paris braucht der EFS bis zu einer Minute für die Antwort: das erste Lesen nach einem Start
+  kann so lange dauern.
 - Alle 10 Minuten folgen Zähler und nächster Termin ohne Netzwerk der Uhr.
 - Die Anfrage enthält den Mittelpunkt der Zone **auf etwa einen Kilometer gerundet**: die genaue
   Position deines Hauses wird nicht gesendet. Die Entfernungen berechnet die Integration.

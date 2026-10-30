@@ -269,6 +269,9 @@ long, et sur un « Sie »/« Ihr… » de politesse en allemand. Le store exige 
   arbitraire de lieux (76 au lieu de 87 autour de Toulouse) : `Limit=500`, qui compte des **lieux**. Pas de
   `MaxDate` : une fenêtre glissante ferait passer chaque jour pour « nouvelles » les collectes qui y entrent
   (l'EFS publie environ dix semaines à l'avance).
+- **Lenteur** : 1,7 s autour de Toulouse, mais **55 à 60 s** (650 à 850 Ko) autour de Paris, quel que soit
+  le rayon (20 à 50 km) : délai de requête à 120 s. Les widgets et l'action n'attendent la première lecture
+  que 10 s.
 - **Forme de la réponse** : `samplingLocationCollections[]` (un lieu, `groupCode` + `samplingLocationCode`)
   → `collections[]` (une collecte : premier créneau, places `nbPlaces*ST`, `urlBlood` sans schéma,
   `proposePlanningRdv`) → `children[]` (autres demi-journées ou jours, sans places ni lien). Dates

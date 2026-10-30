@@ -22,7 +22,8 @@ export const API_URL =
   'https://oudonner.api.efs.sante.fr/carto-api/v3/samplingcollection/searchinsquare';
 export const EFS_SITE = 'https://dondesang.efs.sante.fr/trouver-une-collecte';
 export const PLACE_LIMIT = 500;
-const TIMEOUT_MS = 30000;
+// Measured on 2026-10-30: 1.7 s around Toulouse, 55 to 60 s (650 to 850 kB) around Paris.
+const TIMEOUT_MS = 120000;
 const KM_PER_DEGREE = 111.32;
 
 const DATE = /^(\d{4}-\d{2}-\d{2})T/;
