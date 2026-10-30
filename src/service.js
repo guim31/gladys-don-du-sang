@@ -72,6 +72,7 @@ export class DonDuSang {
     this.houseError = false;
     this.collections = null; // array, null before the first reading of the zone
     this.zoneKey = null; // the zone of `collections`
+    this.shownZone = null; // the zone whose drives the device shows
     this.readAt = null;
     this.retryAt = null;
     this.error = null;
@@ -288,7 +289,10 @@ export class DonDuSang {
     if (collections === null) {
       // No position any more, or the new zone not readable: no drive of the
       // old zone left on the device.
-      if (this.watched() && (!this.position() || this.error)) {
+      // Not when nothing was ever shown: "no drive" would be a lie then.
+      const lost = this.shownZone !== null && this.shownZone !== this.currentZoneKey();
+      if (this.watched() && (!this.position() || (this.error && lost))) {
+        this.shownZone = null;
         await this.publish(areaStates(this.gladys, [], this.config.language, this.now()));
       }
       return;
@@ -296,6 +300,7 @@ export class DonDuSang {
     const now = this.now();
     if (this.watched()) {
       await this.publish(areaStates(this.gladys, collections, this.config.language, now));
+      this.shownZone = this.zoneKey;
     }
     this.dayMarks = { today: this.store.get('today'), tomorrow: this.store.get('tomorrow') };
     const marks = JSON.stringify([this.dayMarks.today, this.dayMarks.tomorrow]);
@@ -341,7 +346,11 @@ export class DonDuSang {
 
   /** True when the 12-hour reading is due (retries aside). */
   readingDue() {
-    return !this.collections || this.now() - this.readAt >= READ_EVERY_MS - READ_MARGIN_MS;
+    const now = this.now();
+    if (this.retryAt !== null && now < this.retryAt) {
+      return false;
+    }
+    return !this.collections || now - this.readAt >= READ_EVERY_MS - READ_MARGIN_MS;
   }
 
   /** Reads the EFS when due; true when a new list was read. A failure keeps the known one. */
