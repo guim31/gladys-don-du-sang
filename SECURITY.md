@@ -30,6 +30,14 @@ Gladys before reporting a problem.
 
 In scope: the code of this repository and the Docker image it publishes.
 
+The integration needs no account, no key and no secret. It reads public data only
+(`oudonner.api.efs.sante.fr`, HTTPS, outbound) and receives no inbound connection. It reads the
+coordinates of the house from Gladys (`location: true`), or uses the point entered in the
+configuration; the request to the EFS carries that centre **rounded to 0.01°** (about a
+kilometre), never the exact position, and the coordinates are never logged. It stores in `/data`
+only `state.json`: the ids and days of the drives already announced, a fingerprint (hash) of the
+zone they belong to, and the dates of the last "today" / "tomorrow" passes, nothing personal.
+
 Out of scope: Gladys Assistant itself (see its
 [security policy](https://github.com/GladysAssistant/Gladys/security/policy)),
 and the third-party services and devices the integration talks to.
