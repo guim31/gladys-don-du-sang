@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-30
+
 ### Added
 
 - The upcoming blood drives of the Établissement français du sang (EFS), read from its public map
@@ -21,3 +23,6 @@ the notes of the version's GitHub Release.
 - Scene triggers "New blood drive announced", "Blood drive today" and "Blood drive tomorrow", and
   the scene action "Nearby blood drives" (one sentence).
 - Texts and documentation in English, French, German and Spanish.
+
+[Unreleased]: https://github.com/guim31/gladys-don-du-sang/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/guim31/gladys-don-du-sang/releases/tag/v1.0.0
