@@ -32,14 +32,18 @@ pushing.
 
 ```
 index.js                          SDK wiring only: handlers registered before connect()
-src/devices/index.js              registry of the device blueprints + dispatch helpers
-src/devices/<type>.js             one device type per file (buildDevice, onPoll, onSetValue...)
-src/scenes.js                     scene action handlers (manifest `scene_actions`)
-src/widgets.js                    dashboard widget handlers (manifest `widgets`)
+src/app.js                        registers every handler, returns the service (tests use it too)
+src/service.js                    runtime: position, readings every 12 h, states, triggers, /data
+src/source.js                     EFS map API: request, answer flattened into drive days
+src/collections.js                drive days against the clock (upcoming, periods)
+src/devices.js                    the zone device and its states
+src/widgets.js                    "Blood drives" widget (manifest `widgets`)
+src/scenes.js                     "Nearby blood drives" scene action (manifest `scene_actions`)
+src/messages.js                   every text the code produces, in en/fr/de/es
 src/config.js                     DEFAULT_CONFIG (mirrors the manifest defaults) + normalization
-src/weather.js                    example driver (Open-Meteo)
+src/store.js, src/time.js, src/text.js   /data state, local time, text helpers
 gladys-assistant-integration.json manifest: name, config_schema, actions, image...
-docs/en.md, docs/fr.md            user documentation, re-hosted by Gladys (mandatory)
+docs/{en,fr,de,es}.md             user documentation, re-hosted by Gladys (mandatory)
 test/                             node --test, against the SDK's fake Gladys (integration-sdk/testing)
 .github/scripts/release.mjs       release helpers (manifest bump, changelog), tested in test/
 ```
@@ -251,3 +255,32 @@ long, et sur un « Sie »/« Ihr… » de politesse en allemand. Le store exige 
 - Docs `en`, `fr`, `de`, `es` avec les mêmes sections.
 - Chauffe, ouverture, sécurité : ne rien rendre pilotable « comme un thermostat » ou par un assistant
   vocal quand une erreur serait dangereuse (leçon d'OctoPrint).
+
+## Don du sang (EFS)
+
+- **API** : carte publique de l'EFS, `https://oudonner.api.efs.sante.fr/carto-api/v3/` (swagger :
+  `/carto-api/swagger/index.html`, JSON : `/carto-api/v3/swagger.json`). Jeu data.gouv.fr « Lieux et
+  horaires des collectes de sang », Licence Ouverte 2.0. Sans compte ni clé. Route utilisée :
+  `samplingcollection/searchinsquare` (carré NE/SO + `UserLatitude`/`UserLongitude` obligatoires,
+  `MinDate`, `Limit`). `searchnearpoint` attend des **diamètres en degrés**
+  (`DiameterLatitude`/`DiameterLongitude`), d'où sa réponse vide avec un rayon en km.
+- **Pièges mesurés le 30/10/2026** : `HidePrivateCollects=true` retire aussi des collectes publiques
+  (`isPublic: true`) : on filtre soi-même sur `isPublic`. Sans `Limit`, la réponse s'arrête à un nombre
+  arbitraire de lieux (76 au lieu de 87 autour de Toulouse) : `Limit=500`, qui compte des **lieux**. Pas de
+  `MaxDate` : une fenêtre glissante ferait passer chaque jour pour « nouvelles » les collectes qui y entrent
+  (l'EFS publie environ dix semaines à l'avance).
+- **Lenteur** : 1,7 s autour de Toulouse, mais **55 à 60 s** (650 à 850 Ko) autour de Paris, quel que soit
+  le rayon (20 à 50 km) : délai de requête à 120 s. Les widgets et l'action n'attendent la première lecture
+  que 10 s.
+- **Forme de la réponse** : `samplingLocationCollections[]` (un lieu, `groupCode` + `samplingLocationCode`)
+  → `collections[]` (une collecte : premier créneau, places `nbPlaces*ST`, `urlBlood` sans schéma,
+  `proposePlanningRdv`) → `children[]` (autres demi-journées ou jours, sans places ni lien). Dates
+  `YYYY-MM-DDT00:00:00` et heures `HH:MM:SS` **locales sans décalage** : lues dans le fuseau de Gladys
+  (`TZ`), Paris à défaut. Les Maisons du don sont dans `samplingLocationEntities_SF` (horaires en texte
+  libre) : non reprises.
+- **Identifiant d'une journée de collecte** : `<groupCode>-<samplingLocationCode>-<date>`, stable d'une
+  lecture à l'autre ; il sert à `new_collection` (mémoire dans `/data`, oubliée quand le jour est passé).
+- **Vie privée** : le centre envoyé est arrondi à 0,01° et le carré élargi d'1 km ; la clé de zone écrite
+  dans `/data` est une empreinte SHA-256, pas la position.
+- Budget widget : `badge.text` 16 caractères, `links[].label` 24 (sinon tronqués par le cœur ;
+  `validateWidgetContent` le signale).
