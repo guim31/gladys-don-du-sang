@@ -36,7 +36,7 @@ coordinates of the house from Gladys (`location: true`), or uses the point enter
 configuration; the request to the EFS carries that centre **rounded to 0.01°** (about a
 kilometre), never the exact position, and the coordinates are never logged. It stores in `/data`
 only `state.json`: the ids and days of the drives already announced, a fingerprint (hash) of the
-zone they belong to, and the dates of the last "today" / "tomorrow" passes, nothing personal.
+rounded centre and radius they belong to, and the dates of the last "today" / "tomorrow" passes, nothing personal.
 
 Out of scope: Gladys Assistant itself (see its
 [security policy](https://github.com/GladysAssistant/Gladys/security/policy)),

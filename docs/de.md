@@ -113,7 +113,7 @@ Termins.
 - Quelle: die Karten-API des EFS (`oudonner.api.efs.sante.fr/carto-api`, v3), auf data.gouv.fr
   veröffentlicht („Lieux et horaires des collectes de sang“) unter der Licence Ouverte 2.0.
 - Eine Anfrage **alle 12 Stunden** (höchstens zweimal täglich), für die Termine ab heute. Ein
-  fehlgeschlagenes Lesen wird nach einer Stunde wiederholt; die bekannten Termine bleiben sichtbar.
+  fehlgeschlagenes Lesen wird nach einer Stunde wiederholt (nach 10 Minuten, solange noch nichts gelesen wurde); die bekannten Termine bleiben sichtbar.
 - Rund um Paris braucht der EFS bis zu einer Minute für die Antwort: das erste Lesen nach einem Start
   kann so lange dauern.
 - Alle 10 Minuten folgen Zähler und nächster Termin ohne Netzwerk der Uhr.
@@ -141,7 +141,10 @@ Termins.
   festen Spendezentren („Maisons du don“) haben eigene Öffnungszeiten und werden nicht aufgeführt.
 - Die Reservierungsangaben sind die der EFS-Karte: angebotene Online-Reservierung, freie Plätze
   für die Blutspende. Plasma- und Thrombozytenspenden erfolgen nach Termin in den Spendezentren.
-- Entfernungen in Luftlinie.
+- Entfernungen in Luftlinie. Ohne kommenden Termin behält die Entfernung ihren letzten Wert (der Ort
+  zeigt „Kein Termin“).
+- Die Uhrzeiten werden in der Zeitzone von Gladys gelesen: ein Punkt in Übersee, während Gladys auf
+  Pariser Zeit läuft, verschiebt sie.
 - Nicht mit dem Établissement français du sang verbunden.
 
 ## Danksagung

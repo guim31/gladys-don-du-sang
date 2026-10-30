@@ -229,3 +229,47 @@ test('the integration refreshes by its own timer, without Gladys polling', async
     'SALLE DES FÊTES FELIX VERDUN, POMPERTUZAT',
   );
 });
+
+test('a trigger Gladys refused is not marked as done: fired again at the next pass', async (t) => {
+  const network = createFetch();
+  announce(network, { code: '9001', date: '2026-10-30' });
+  const world = await createWorld({ network });
+  t.after(() => world.app.stop());
+  const original = world.gladys.publishSceneEvent.bind(world.gladys);
+  let down = true;
+  t.mock.method(world.gladys, 'publishSceneEvent', (key, data) =>
+    down ? Promise.reject(new Error('HTTP 503')) : original(key, data),
+  );
+  await tick(world, 6); // 08:54, refused
+  assert.deepEqual(world.fake.sceneEvents, []);
+  down = false;
+  await tick(world, 0.25);
+  assert.deepEqual(
+    fired(world, TRIGGERS.COLLECTION_TODAY).map((e) => e.data.place),
+    ['SALLE TEST 9001'],
+  );
+  // A new drive day refused is announced at the next reading.
+  announce(network, { code: '9003', date: '2026-11-06' });
+  down = true;
+  await tick(world, READ_EVERY_MS / HOUR);
+  down = false;
+  assert.deepEqual(fired(world, TRIGGERS.NEW_COLLECTION), []);
+  await tick(world, READ_EVERY_MS / HOUR);
+  assert.deepEqual(
+    fired(world, TRIGGERS.NEW_COLLECTION).map((e) => e.data.place),
+    ['SALLE TEST 9003'],
+  );
+});
+
+test('the house moved in Gladys: followed at the next reading; gone: the device says none', async (t) => {
+  const world = await createWorld();
+  t.after(() => world.app.stop());
+  const device = await create(world, 'Don du sang');
+  world.fake.houses[0].latitude = 43.5;
+  await tick(world, READ_EVERY_MS / HOUR);
+  assert.match(world.network.calls.at(-1).url, /UserLatitude=43\.5&/);
+  world.fake.houses[0].latitude = null;
+  await tick(world, READ_EVERY_MS / HOUR);
+  assert.equal(world.fake.lastState(featureId(device, 'week')), 0);
+  assert.equal(world.fake.lastState(featureId(device, 'next_place')), 'Aucune');
+});

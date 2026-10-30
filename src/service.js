@@ -19,7 +19,7 @@ import { DEFAULT_CONFIG, normalizeConfig } from './config.js';
 import { endOf, upcoming } from './collections.js';
 import { AREA_TYPE, buildAreaDevice, areaStates } from './devices.js';
 import { REPORTS, allLanguages, bookingText, formatHours, formatWhen, pick } from './messages.js';
-import { EFS_SITE, readCollections } from './source.js';
+import { EFS_SITE, fuzzyCentre, readCollections } from './source.js';
 import { createStore } from './store.js';
 import { truncate } from './text.js';
 import { addDays, localParts } from './time.js';
@@ -104,6 +104,7 @@ export class DonDuSang {
 
   /** Gladys restarted: everything again, the house and the states included. */
   async resync(config) {
+    await this.refreshing;
     this.config = config;
     await this.locate();
     this.gladys.forgetPublishedStates?.();
@@ -276,20 +277,28 @@ export class DonDuSang {
     if (this.stopped) {
       return;
     }
-    if (!this.config.point && !this.house) {
+    // The house is read again before each reading: a corrected position is
+    // followed without a restart.
+    if (!this.config.point && (!this.house || this.readingDue())) {
       await this.locate();
     }
     const fresh = await this.read();
     await this.publishDiscovered({ force: forceDiscovery });
     const collections = this.zoneCollections();
     if (collections === null) {
+      // No position any more, or the new zone not readable: no drive of the
+      // old zone left on the device.
+      if (this.watched() && (!this.position() || this.error)) {
+        await this.publish(areaStates(this.gladys, [], this.config.language, this.now()));
+      }
       return;
     }
     const now = this.now();
     if (this.watched()) {
       await this.publish(areaStates(this.gladys, collections, this.config.language, now));
     }
-    const marks = JSON.stringify([this.store.get('today'), this.store.get('tomorrow')]);
+    this.dayMarks = { today: this.store.get('today'), tomorrow: this.store.get('tomorrow') };
+    const marks = JSON.stringify([this.dayMarks.today, this.dayMarks.tomorrow]);
     const triggers = [
       ...(fresh ? this.newCollections(collections) : []),
       ...this.dayCollections(collections, 'today'),
@@ -298,8 +307,28 @@ export class DonDuSang {
     if (triggers.length > MAX_EVENTS) {
       logger.debug(`${triggers.length} trigger events, only the first ${MAX_EVENTS} fired`);
     }
-    for (const { key, data } of triggers.slice(0, MAX_EVENTS)) {
-      await this.fire(key, data);
+    // What could not be fired is not marked as done: a new drive day is
+    // announced at the next reading, a day pass is run again at the next tick
+    // when none of its events went through.
+    const passed = new Set();
+    const failed = new Set();
+    for (const { key, data, id } of triggers.slice(0, MAX_EVENTS)) {
+      if (await this.fire(key, data)) {
+        passed.add(key);
+      } else {
+        failed.add(key);
+        if (id) {
+          delete this.seen?.[id];
+        }
+      }
+    }
+    for (const [which, key] of [
+      ['today', TRIGGERS.COLLECTION_TODAY],
+      ['tomorrow', TRIGGERS.COLLECTION_TOMORROW],
+    ]) {
+      if (failed.has(key) && !passed.has(key)) {
+        this.store.set(which, this.dayMarks?.[which]);
+      }
     }
     if (fresh) {
       this.refreshWidget();
@@ -308,6 +337,11 @@ export class DonDuSang {
     if (fresh || marks !== JSON.stringify([this.store.get('today'), this.store.get('tomorrow')])) {
       await this.store.save();
     }
+  }
+
+  /** True when the 12-hour reading is due (retries aside). */
+  readingDue() {
+    return !this.collections || this.now() - this.readAt >= READ_EVERY_MS - READ_MARGIN_MS;
   }
 
   /** Reads the EFS when due; true when a new list was read. A failure keeps the known one. */
@@ -363,8 +397,13 @@ export class DonDuSang {
    */
   newCollections(collections) {
     const today = localParts(this.now()).date;
-    // A fingerprint: the position of the house is not written in /data.
-    const stamp = createHash('sha256').update(this.zoneKey).digest('hex').slice(0, 16);
+    // A fingerprint of the rounded centre sent to the EFS (never the exact
+    // position of the house) and of the radius.
+    const centre = fuzzyCentre(this.position());
+    const stamp = createHash('sha256')
+      .update(`${centre.lat},${centre.lon},${this.config.radiusKm}`)
+      .digest('hex')
+      .slice(0, 16);
     const zone = this.store.get('zone');
     const known = this.store.get('seen');
     const reference = zone !== stamp || !known || typeof known !== 'object';
@@ -379,6 +418,7 @@ export class DonDuSang {
       seen[occurrence.id] = occurrence.date;
     }
     this.store.set('seen', seen);
+    this.seen = seen;
     this.store.set('zone', stamp);
     if (reference) {
       return [];
@@ -386,6 +426,7 @@ export class DonDuSang {
     return upcoming(fresh, this.now()).map((occurrence) => ({
       key: TRIGGERS.NEW_COLLECTION,
       data: this.eventData(occurrence),
+      id: occurrence.id,
     }));
   }
 
@@ -426,6 +467,7 @@ export class DonDuSang {
     };
   }
 
+  /** Fires a scene event; false when Gladys refused it. */
   async fire(key, data) {
     try {
       await this.gladys.publishSceneEvent(key, data);
@@ -433,11 +475,13 @@ export class DonDuSang {
         this.fireFailed = false;
         logger.info('Scene triggers fired again');
       }
+      return true;
     } catch (err) {
       if (!this.fireFailed) {
         logger.warn(`Cannot fire the ${key} trigger: ${err.message}`);
       }
       this.fireFailed = true;
+      return false;
     }
   }
 

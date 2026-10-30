@@ -113,7 +113,7 @@ colecta (para continuar solo si hay alguno), el lugar, la fecha y el enlace de c
 - Fuente: la API del mapa del EFS (`oudonner.api.efs.sante.fr/carto-api`, v3), publicada en
   data.gouv.fr («Lieux et horaires des collectes de sang») bajo la Licence Ouverte 2.0.
 - Una petición **cada 12 horas** (dos veces al día como máximo), para las colectas desde hoy. Una
-  lectura fallida se reintenta al cabo de una hora; las colectas conocidas siguen mostrándose.
+  lectura fallida se reintenta al cabo de una hora (10 minutos si aún no se ha leído nada); las colectas conocidas siguen mostrándose.
 - Alrededor de París, el EFS tarda hasta un minuto en responder: la primera lectura tras un inicio
   puede tardar ese tiempo.
 - Cada 10 minutos, sin red, los contadores y la próxima colecta siguen el reloj.
@@ -139,7 +139,10 @@ colecta (para continuar solo si hay alguno), el lugar, la fecha y el enlace de c
   centros fijos («Maisons du don») tienen su propio horario y no se listan.
 - La información de cita es la del mapa del EFS: cita en línea ofrecida, plazas libres para la
   donación de sangre. Las donaciones de plasma y plaquetas se hacen con cita en los centros fijos.
-- Distancias en línea recta.
+- Distancias en línea recta. Sin ninguna colecta próxima, la distancia conserva su último valor (el
+  lugar indica «Ninguna»).
+- Los horarios se leen en la zona horaria de Gladys: un punto de ultramar con Gladys en hora de
+  París los desplaza.
 - Sin relación con el Établissement français du sang.
 
 ## Créditos

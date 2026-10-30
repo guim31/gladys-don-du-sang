@@ -114,7 +114,7 @@ rendez-vous de la prochaine.
 - Source : l'API de la carte de l'EFS (`oudonner.api.efs.sante.fr/carto-api`, v3), publiée sur
   data.gouv.fr (« Lieux et horaires des collectes de sang ») sous Licence Ouverte 2.0.
 - Une requête **toutes les 12 heures** (deux fois par jour au plus), pour les collectes à partir
-  d'aujourd'hui. Une lecture en échec est retentée au bout d'une heure ; les collectes connues
+  d'aujourd'hui. Une lecture en échec est retentée au bout d'une heure (10 minutes si rien n'a encore été lu) ; les collectes connues
   restent affichées.
 - Autour de Paris, l'EFS met jusqu'à une minute à répondre : la première lecture après un démarrage
   peut prendre ce temps.
@@ -144,7 +144,10 @@ rendez-vous de la prochaine.
 - Les informations de rendez-vous sont celles de la carte de l'EFS : prise de rendez-vous en ligne
   proposée, places libres pour le don de sang. Les dons de plasma et de plaquettes se font sur
   rendez-vous dans les Maisons du don.
-- Distances à vol d'oiseau.
+- Distances à vol d'oiseau. Sans aucune collecte à venir, la distance garde sa dernière valeur (le
+  lieu indique « Aucune »).
+- Les horaires sont lus dans le fuseau de Gladys : un point saisi outre-mer alors que Gladys est à
+  l'heure de Paris les décale.
 - Sans lien avec l'Établissement français du sang.
 
 ## Crédits

@@ -109,7 +109,7 @@ there is one), the place, the date and the booking link of the next drive.
 - Source: the map API of the EFS (`oudonner.api.efs.sante.fr/carto-api`, v3), published on
   data.gouv.fr ("Lieux et horaires des collectes de sang") under the Licence Ouverte 2.0.
 - One request **every 12 hours** (twice a day at most), for the drives from today on. A failed
-  reading is tried again after an hour; the known drives stay shown.
+  reading is tried again after an hour (10 minutes when nothing was read yet); the known drives stay shown.
 - Around Paris, the EFS takes up to a minute to answer: the first reading after a start can take
   that long.
 - Every 10 minutes, without network, the counts and the next drive follow the clock.
@@ -134,7 +134,10 @@ there is one), the place, the date and the booking link of the next drive.
   donation centres ("Maisons du don") have their own opening hours and are not listed.
 - The appointment information is the one of the EFS map: online booking offered, free slots for
   blood donation. Plasma and platelet donations are by appointment in donation centres.
-- Distances are as the crow flies.
+- Distances are as the crow flies. Without any upcoming drive, the distance keeps its last value
+  (the place says "None").
+- Hours are read in the time zone of Gladys: a point entered overseas while Gladys runs on Paris time
+  shifts them.
 - Not affiliated with the Établissement français du sang.
 
 ## Credits
